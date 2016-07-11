@@ -35,7 +35,6 @@ double p_01=0;
 double p_10=0;
 double p_11=0;
 
-
 double nrnd();
 
 double max_value(double a, double b, double c, double d, int *xmap, int i, double p_00, double p_01, double p_10, double p_11, double *p_3){
@@ -123,68 +122,72 @@ void generate_y(){
 
 void compute_xmap(){
 
-  int i;
+  int i=0;
 
   f[0][0] = 0.5;
   f[0][1] = 0.5;
   p_2=0;
   p_3=0;
 
-  for(i=0; i<N_DATA; i++){
+
+  p_00 = log(f[0][0]) + log(P00) + p_3;
+  p_01 = log(f[0][1]) + log(P01) + p_3;
+  p_10 = log(f[0][0]) + log(P10) + p_3;
+  p_11 = log(f[0][1]) + log(P11) + p_3;
+
+  p_comp_1 = (p_00+(C + (-(pow((y[0]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
+  p_comp_2 = (p_01+(C + (-(pow((y[0]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
+  p_comp_3 = (p_10+(C + (-(pow((y[0]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
+  p_comp_4 = (p_11+(C + (-(pow((y[0]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
+
+  p_2 = max_value(p_comp_1, p_comp_2, p_comp_3, p_comp_4, xmap, i, p_00,p_01,p_10,p_11,&p_3);
+
+	printf("p_ :test0 :%f %f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4,p_3);///test
+
+  for(i=1; i<N_DATA; i++){
 
 	//////////
 
 	//	p_3 *= f[j][xmap[j]]*f[j-1][xmap[j-1]];
 
+	if(xmap[i-1]==0){
+	  p_00 = log(f[i][0]) + log(P00) + p_3;
 
-	p_00 = log(f[i][0]) + log(P00) + p_3;
-
-	p_comp_1 = ((p_00+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ))
-				- ( (p_00+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_00+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_00+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_00+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) ) ) )
-	  +p_2;
+	  p_comp_1 = (p_00+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
 
 
-	////////
-	p_01 = log(f[i][0]) + log(P01) + p_3;
+	  ////////
+	  p_01 = log(f[i][0]) + log(P01) + p_3;
 
-	p_comp_2 = ((p_01+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ))
-				- ( (p_01+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_01+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_01+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_01+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) ) ) )
-	  +p_2;
+	  p_comp_2 = (p_01+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
 
+	  p_comp_3=0;
+	  p_comp_4=0;
+	}else{
 
-	//////////
-	p_10 = log(f[i][1]) + log(P10) + p_3;
+	  //////////
+	  p_10 = log(f[i][1]) + log(P10) + p_3;
 
-	p_comp_3 = ((p_10+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ))
-				- ( (p_10+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_10+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_10+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_10+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) ) ) )
-	  +p_2;
+	  p_comp_3 = (p_10+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
 
 
 
-	//////
-	p_11 = log(f[i][1]) + log(P11) + p_3;
+	  //////
+	  p_11 = log(f[i][1]) + log(P11) + p_3;
 
-	p_comp_4 = ((p_11+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ))
-				- ( (p_11+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_11+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_11+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) ) )
-					+ (p_11+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) ) ) ) )
-	  +p_2;
+	  p_comp_4 = (p_11+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
+
+	  p_comp_1=0;
+	  p_comp_2=0;
+
+	}
 
 	p_2 = max_value(p_comp_1, p_comp_2, p_comp_3, p_comp_4, xmap, i, p_00,p_01,p_10,p_11,&p_3);
 
 	printf("p_ :test :%f %f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4,p_3);///test
 
   }
+
   /* for (i=0; i<N_DATA; i++){
 	 xmap[i]=1;
 	 }
@@ -193,13 +196,17 @@ void compute_xmap(){
 
 void show_resuls(){
 
-  int i;
+  int i=0;
 
-  for (i=0; i<N_DATA; i++){
+  for(i=0; i<N_DATA; i++){
 	printf("%d\t%d\t%.8lf\t%d\n",i, x[i],y[i],xmap[i]+3);
   }
 
   ///my
+
+  //  printf("%d\t%d\t%.8lf\t%d\n",i, x[0],y[0],xmap[0]+3);
+
+
   printf("p_2 : %f\n", p_2);
 
   printf("p : %f\n", p);
@@ -214,7 +221,7 @@ double nrnd(){
   static int sw=0;
   static double r1,r2,s;
 
-  if (sw==0){
+  if(sw==0){
 	sw=1;
 	do{
 	  r1=2.0*drand48()-1.0;
