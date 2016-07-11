@@ -1,0 +1,9 @@
+set terminal png
+set out "DP.png"
+set title "signal"
+set xlabel "i"
+set ylabel "y"
+set key right bottom
+plot [-2:200][-5:5] "DP.dat" using 1:2 lc rgb "red" with lines title "Restoring_signal",\
+		"DP.dat" using 1:3 lc rgb "green" with points title "Observational_data",\
+		"DP.dat" using 1:4 lc rgb "blue" with lines title "Original_signal"
