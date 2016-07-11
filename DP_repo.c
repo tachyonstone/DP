@@ -94,36 +94,36 @@ double max_value2(double a, double b, int *xmap, int i, double p_a, double p_b, 
 void generate_x(){
 
   int i;
+  double r;
 
-  /*
-	if ( drand48() < 0.5 ){
+  // srand48(RAND_SEED);
+  srand48((int)time(NULL));
+
+  if ( drand48() < 0.5 ){
 	x[0]=0;
-	}
-	else{
+  }
+  else{
 	x[0]=1;
+  }
+
+  for (i=1; i<N_DATA; i++){
+	r = drand48();
+	if(x[i-1] == 0){
+	  if(r<0.99){
+		x[i] = 0;
+	  }else{
+		x[i] = 1;
+	  }
+	}else{
+	  if(r<0.97){
+		x[i] = 1;
+	  }else{
+		x[i] = 0;
+	  }
 	}
 
-	for (i=1; i<N_DATA; i++){
-	x[i]=x[i-1];
-	}
-  */
+  }
 
-  /*const_ver (temp)*/
-  for (i=0; i<20; i++){
-	x[i]=1;
-  }
-  for (i=20; i<80; i++){
-	x[i]=0;
-  }
-  for (i=80; i<120; i++){
-	x[i]=1;
-  }
-  for (i=120; i<140; i++){
-	x[i]=0;
-  }
-  for (i=140; i<N_DATA; i++){
-	x[i]=1;
-  }
 
 }
 
@@ -143,7 +143,6 @@ void compute_xmap(){
 
   p_2=0;
   p_3=0.5;
-
 
   p_00 = log(P00) + p_3;
   p_01 = log(P01) + p_3;
@@ -183,13 +182,11 @@ void compute_xmap(){
 
 	  p_comp_4 = (p_11+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
 
- p_2 = max_value2(p_comp_3, p_comp_4, xmap, i, p_10,p_11,&p_3);
+	  p_2 = max_value2(p_comp_3, p_comp_4, xmap, i, p_10,p_11,&p_3);
 
 	}else{
 	  printf("error\n");
 	}
-
-
 
 	printf("p_ :test :%f %f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4,p_2);///test
 	p_comp_1=0;
