@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define RAND_SEED 201677
+#define RAND_SEED 2014720
 #define N_DATA 200
 #define SIGMA 0.7 // 加わるノイズの標準偏差
 #define P00 0.99 // 状態遷移確率の定義．P01 は 0→1 の遷移確率
@@ -11,7 +11,7 @@
 #define P11 0.97
 
 /////my_define
-#define C -log((sqrt(2*M_PI)) * SIGMA)
+//#define C -log((sqrt(2*M_PI)) * SIGMA)
 
 /* ここではグローバル変数を使う．コードを短くし，分かりやすくするため． */
 int x[N_DATA]; // もともとの信号． 0 か 1
@@ -20,15 +20,14 @@ double y[N_DATA]; // 観測データ
 int xhat[N_DATA][2]; // xhat[2][b] = argmax_a { ( f[2][a] + h(a,b) } 教科書 p.218 参照
 double f[N_DATA][2];
 
-////////////my_define
-double p; //p(x)
+/////////////////
 double p_comp_1;
 double p_comp_2;
 double p_comp_3;
 double p_comp_4;
-double p_2;  //max p
+double p_2;  //max
 double p_3;
-int j=0;
+double p_30,p_31;
 
 double p_00=0;
 double p_01=0;
@@ -37,12 +36,12 @@ double p_11=0;
 
 double nrnd();
 
-double max_value(double a, double b, double c, double d, int *xmap, int i, double p_00, double p_01, double p_10, double p_11, double *p_3){
+double max_value(double a, double b, double c, double d, int i, double p_00, double p_01, double p_10, double p_11, double *p_3){
 
   double max_1 = a;
   double max_2 = c;
 
-  xmap[i] = 0;
+  xhat[i][0] = 0;
   *p_3 = p_00;
 
   if(a < b){
@@ -51,11 +50,11 @@ double max_value(double a, double b, double c, double d, int *xmap, int i, doubl
   }
   if(c < d){
 	max_2 = d;
-	xmap[i] = 1;
+	xhat[i][1] = 1;
 	*p_3 = p_11;
   }
   if(max_1 < max_2){
-	xmap[i] = 1;
+	xhat[i][1] = 1;
 	if(max_2 == c){
 	  *p_3 = p_10;
 	}else{
@@ -68,23 +67,39 @@ double max_value(double a, double b, double c, double d, int *xmap, int i, doubl
 	}else{
 	  *p_3 = p_01;
 	}
-	xmap[i] = 0;
+	xhat[i][0] = 0;
 	return max_1;
   }
 
 }
 
 
-double max_value2(double a, double b, int *xmap, int i, double p_a, double p_b, double *p_3){
+double max_value2(double a, double b, int i, double p_a, double p_b, double *p_3){
 
   double max = a;
 
-  xmap[i] = 0;
+  xhat[i][0] = 0;
   *p_3 = p_a;
 
   if(a < b){
 	max=b;
-	xmap[i] = 1;
+	xhat[i][0] = 1;
+	*p_3 = p_b;
+	return max;
+  }
+
+}
+
+double max_value3(double a, double b, int i, double p_a, double p_b, double *p_3){
+
+  double max = a;
+
+  xhat[i+1][1] = 0;
+  *p_3 = p_a;
+
+  if(a < b){
+	max=b;
+	xhat[i+1][1] = 1;
 	*p_3 = p_b;
 	return max;
   }
@@ -96,9 +111,6 @@ void generate_x(){
   int i;
   double r;
 
-  // srand48(RAND_SEED);
-  srand48((int)time(NULL));
-
   if ( drand48() < 0.5 ){
 	x[0]=0;
   }
@@ -107,7 +119,9 @@ void generate_x(){
   }
 
   for (i=1; i<N_DATA; i++){
+
 	r = drand48();
+
 	if(x[i-1] == 0){
 	  if(r<0.99){
 		x[i] = 0;
@@ -132,7 +146,7 @@ void generate_y(){
   int i;
 
   for (i=0; i<N_DATA; i++){
-	y[i]=(double)x[i] + nrnd();
+	y[i]=(double)x[i] + SIGMA*nrnd();
   }
 
 }
@@ -140,6 +154,13 @@ void generate_y(){
 void compute_xmap(){
 
   int i=0;
+  double temp=0;
+  double temp_2=0;
+  double temp_3=0;
+
+  int n = 199;
+  int a;
+
 
   p_2=0;
   p_3=0.5;
@@ -149,53 +170,126 @@ void compute_xmap(){
   p_10 = log(P10) + p_3;
   p_11 = log(P11) + p_3;
 
-  p_comp_1 = (p_00+(C + (-(pow((y[0]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
-  p_comp_2 = (p_01+(C + (-(pow((y[0]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
-  p_comp_3 = (p_10+(C + (-(pow((y[0]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
-  p_comp_4 = (p_11+(C + (-(pow((y[0]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
+  p_comp_1 = p_00-(pow((y[0]-0),2)/(2*pow(SIGMA,2)));
+  p_comp_3 = p_10 -(pow((y[0]-1),2)/(2*pow(SIGMA,2)));
 
-  p_2 = max_value(p_comp_1, p_comp_2, p_comp_3, p_comp_4, xmap, i, p_00,p_01,p_10,p_11,&p_3);
+	if(p_comp_1 > p_comp_3){
+	  xhat[i][0] = 0;
+	  p_30 += p_00;
+	  f[i][0] = p_comp_1;
+	}else{
+	  xhat[i][0] = 1;
+	  p_30 += p_10;
+	  f[i][0] = p_comp_3;
+	}
+
+  //f[0][0] = max_value2(p_comp_1, p_comp_3, i, p_00,p_10,&temp);
+
+
+  p_comp_2 = p_01 -(pow((y[0]-0),2)/(2*pow(SIGMA,2)));
+  p_comp_4 = p_11-(pow((y[0]-1),2)/(2*pow(SIGMA,2)));
+
+	if(p_comp_2 > p_comp_4){
+	  xhat[i][1] = 0;
+	  p_31 += p_01;
+	  f[i][1] = p_comp_2;
+	}else{
+	  xhat[i][1] = 1;
+	  p_31 += p_11;
+	  f[i][1] = p_comp_4;
+	}
+
+
+  //f[0][1] = max_value3(p_comp_2, p_comp_4, i, p_01,p_11,&temp);
+
+  //p_2 = max_value(p_comp_1, p_comp_2, p_comp_3, p_comp_4, xmap, i, p_00,p_01,p_10,p_11,&p_3);
+
+  p_3+=temp;
+
 
   printf("p_ :test0 :%f %f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4,p_2);///test
+	printf("xhat{{%d, %d}}\n", xhat[0][0], xhat[0][1]);
+
+  p_00 = 0;
+  p_01 = 0;
+  p_10 = 0;
+  p_11 = 0;
 
   for(i=1; i<N_DATA; i++){
 
-	if(xmap[i-1]==0){
-	  p_00 = log(P00) + p_3;
 
-	  p_comp_1 = (p_00+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
+	//a-->0
+	p_00 = log(P00);// + p_30;
+    p_comp_1 = p_00 -(pow((y[i]-0),2)/(2*pow(SIGMA,2)))  +f[i-1][0];
 
-	  p_01 = log(P01) + p_3;
+	p_10 = log(P10);// + p_30;
+    p_comp_3 = p_10 -(pow((y[i]-1),2)/(2*pow(SIGMA,2)))  +f[i-1][1];
 
-	  p_comp_2 = (p_01+(C + (-(pow((y[i]-0),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
-
-	  p_2 = max_value2(p_comp_1, p_comp_2, xmap, i, p_00,p_01,&p_3);
-
-
-	}else if(xmap[i-1]==1){
-
-	  p_10 = log(P10) + p_3;
-
-	  p_comp_3 = (p_10+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-0),2)/(2*pow(SIGMA,2)))) )) +p_2;
-
-	  p_11 = log(P11) + p_3;
-
-	  p_comp_4 = (p_11+(C + (-(pow((y[i]-1),2)/(2*pow(SIGMA,2)))) ) + ( C + (-(pow((y[i+1]-1),2)/(2*pow(SIGMA,2)))) )) +p_2;
-
-	  p_2 = max_value2(p_comp_3, p_comp_4, xmap, i, p_10,p_11,&p_3);
-
+	if(p_comp_1 > p_comp_3){
+	  xhat[i][0] = 0;
+	  p_30 += p_00;
+	  f[i][0] = p_comp_1;
 	}else{
-	  printf("error\n");
+	  xhat[i][0] = 1;
+	  p_30 += p_10;
+	  f[i][0] = p_comp_3;
 	}
 
-	printf("p_ :test :%f %f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4,p_2);///test
-	p_comp_1=0;
+	//a-->1
+	p_01 = log(P01);// + p_31;
+	p_comp_2 = p_01 -(pow((y[i]-0),2)/(2*pow(SIGMA,2)))  + f[i-1][0];
+
+	p_11 = log(P11);// + p_31;
+	p_comp_4 = p_11 -(pow((y[i]-1),2)/(2*pow(SIGMA,2))) + f[i-1][1];
+
+	if(p_comp_2 > p_comp_4){
+	  xhat[i][1] = 0;
+	  p_31 += p_01;
+	  f[i][1] = p_comp_2;
+	}else{
+	  xhat[i][1] = 1;
+	  p_31 += p_11;
+	  f[i][1] = p_comp_4;
+	}
+
+
+	///printf("p_ :test :%f %f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4,p_3);  //test
+
+
+ printf("p_ :test1 :%f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4);///test
+	printf("xhat{{%d, %d}}\n", xhat[i][0], xhat[i][1]);
+
+ 	p_comp_1=0;
 	p_comp_2=0;
 	p_comp_3=0;
 	p_comp_4=0;
 
+	p_00 = 0;
+	p_01 = 0;
+	p_10 = 0;
+	p_11 = 0;
+
+
 
   }
+
+  printf("f[199][0]=%f\n", f[199][0]);
+  printf("f[199][1] =%f\n", f[199][1]);
+
+  if(f[199][0] > f[199][1]){
+	a = 0;
+  }else{
+	a = 1;
+  }
+
+  xmap[199] = xhat[199][a];
+
+  for(i=N_DATA-2; i>0; i--){
+	xmap[i] = xhat[i][a];
+	a=xhat[i][a];
+
+  }
+
 
 }
 
@@ -207,11 +301,6 @@ void show_resuls(){
 	printf("%d\t%d\t%.8lf\t%d\n",i, x[i],y[i],xmap[i]+3);
   }
 
-  printf("p_2 : %f\n", p_2);
-
-  printf("p : %f\n", p);
-
-  printf("p_3 : %f\n", p_3);
 
 }
 
@@ -242,7 +331,9 @@ double nrnd(){
 
 int main(int argc , char * argv []){
 
-  srand48(RAND_SEED); /* 擬似乱数の種を設定 */
+  /* 擬似乱数の種を設定 */
+  //srand48(RAND_SEED);
+  srand48((int)time(NULL));
 
   /* 問題を作る（200 個のデータ生成） */
   generate_x ();
