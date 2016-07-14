@@ -116,7 +116,6 @@ void compute_xmap(){
 
 	//a-->0
     p_comp_1 = p_00 -(pow((y[i]-0),2)/(2*pow(SIGMA,2)))  +f[i-1][0];
-
     p_comp_3 = p_10 -(pow((y[i]-1),2)/(2*pow(SIGMA,2)))  +f[i-1][1];
 
 	if(p_comp_1 > p_comp_3){
@@ -128,10 +127,7 @@ void compute_xmap(){
 	}
 
 	//a-->1
-	p_01 = log(P01);
 	p_comp_2 = p_01 -(pow((y[i]-0),2)/(2*pow(SIGMA,2)))  + f[i-1][0];
-
-	p_11 = log(P11);
 	p_comp_4 = p_11 -(pow((y[i]-1),2)/(2*pow(SIGMA,2))) + f[i-1][1];
 
 	if(p_comp_2 > p_comp_4){
