@@ -91,8 +91,8 @@ void compute_xmap(){
 	f[i][0] = p_comp_3;
   }
 
-  p_comp_2 = p_01 -(pow((y[0]-0),2)/(2*pow(SIGMA,2)));
-  p_comp_4 = p_11-(pow((y[0]-1),2)/(2*pow(SIGMA,2)));
+  p_comp_2 = p_01 -(pow((y[0]-0),2)/(2*pow(SIGMA,2))) + 0.5;
+  p_comp_4 = p_11-(pow((y[0]-1),2)/(2*pow(SIGMA,2))) + 0.5;
 
   if(p_comp_2 > p_comp_4){
 	xhat[i][1] = 0;
@@ -108,6 +108,11 @@ void compute_xmap(){
 
 
   for(i=1; i<N_DATA; i++){
+
+ 	p_comp_1=0;
+	p_comp_2=0;
+	p_comp_3=0;
+	p_comp_4=0;
 
 	//a-->0
     p_comp_1 = p_00 -(pow((y[i]-0),2)/(2*pow(SIGMA,2)))  +f[i-1][0];
@@ -139,11 +144,6 @@ void compute_xmap(){
 
 	printf("p_ :test1 :%f %f %f %f\n",p_comp_1,p_comp_2,p_comp_3,p_comp_4);///test
 	printf("xhat{{%d, %d}}\n", xhat[i][0], xhat[i][1]);
-
- 	p_comp_1=0;
-	p_comp_2=0;
-	p_comp_3=0;
-	p_comp_4=0;
 
   }
 
