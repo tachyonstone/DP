@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define RAND_SEED 2014720
+#define RAND_SEED 2016715
 #define N_DATA 200
 #define SIGMA 0.7 // 加わるノイズの標準偏差
 #define P00 0.99 // 状態遷移確率の定義．P01 は 0→1 の遷移確率
@@ -72,16 +72,16 @@ void compute_xmap(){
   double p_comp_3;
   double p_comp_4;
 
-  double p_00 = log(P00);
-  double p_01 = log(P01);
-  double p_10 = log(P10);
-  double p_11 = log(P11);
+  double p_00 = -0.01;  //log(P00)
+  double p_01 = -4.61;  //log(P01)
+  double p_10 = -3.51;  //log(P10)
+  double p_11 = -0.03;  //log(P11)
 
   int n = 199;
   int a;
 
-  p_comp_1 = p_00-(pow((y[0]-0),2)/(2*pow(SIGMA,2))) + 0.5;
-  p_comp_3 = p_10 -(pow((y[0]-1),2)/(2*pow(SIGMA,2))) + 0.5;
+  p_comp_1 = p_00-(pow((y[0]-0),2)/(2*pow(SIGMA,2))) -0.69;
+  p_comp_3 = p_10 -(pow((y[0]-1),2)/(2*pow(SIGMA,2))) -0.69;
 
   if(p_comp_1 > p_comp_3){
 	xhat[i][0] = 0;
@@ -91,8 +91,8 @@ void compute_xmap(){
 	f[i][0] = p_comp_3;
   }
 
-  p_comp_2 = p_01 -(pow((y[0]-0),2)/(2*pow(SIGMA,2))) + 0.5;
-  p_comp_4 = p_11-(pow((y[0]-1),2)/(2*pow(SIGMA,2))) + 0.5;
+  p_comp_2 = p_01 -(pow((y[0]-0),2)/(2*pow(SIGMA,2))) -0.69;
+  p_comp_4 = p_11-(pow((y[0]-1),2)/(2*pow(SIGMA,2))) -0.69;
 
   if(p_comp_2 > p_comp_4){
 	xhat[i][1] = 0;
@@ -154,7 +154,7 @@ void compute_xmap(){
 
   xmap[n] = xhat[n][a];
 
-  for(i=n-1; i>0; i--){
+  for(i=n-1; i>=0; i--){
 	xmap[i] = xhat[i][a];
 	a=xhat[i][a];
 
